@@ -1,0 +1,101 @@
+.custom-order-dialog {
+	display: none;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	box-sizing: border-box;
+	margin: auto;
+	padding: 20px 15px;
+	border-radius: 4px;
+	width: 400px;
+	height: 430px;
+	text-align: left;
+	font-size: 18px;
+	background-color: #fff;
+	box-shadow: rgba(0, 0, 0, 0.275) 0px 1px 2px 1px;	
+}
+
+.custom-order-dialog__header {
+	text-align: center;
+}
+
+.custom-order-dialog__side-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__side-header {
+	display: inline-block;
+	margin-right: 121px;
+}
+
+.custom-order-dialog__order-type-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__order-type-header {
+	display: inline-block;
+	margin-right: 71px;
+}
+
+.custom-order-dialog__price-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__price-header {
+	display: inline-block;
+	margin-right: 33px;
+}
+
+.custom-order-dialog__price-input {
+	display: inline-block;
+}
+
+.custom-order-dialog__qty-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__qty-header {
+	display: inline-block;
+	margin-right: 89px;
+}
+
+.custom-order-dialog__qty-input {
+	display: inline-block;
+}
+
+.custom-order-dialog__tp-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__tp-header {
+	display: inline-block;
+	margin-right: 73px;
+}
+
+.custom-order-dialog__tp-input {
+	display: inline-block;
+}
+
+.custom-order-dialog__sl-section {
+	margin-top: 30px;
+}
+
+.custom-order-dialog__sl-header {
+	display: inline-block;
+	margin-right: 82px;
+}
+
+.custom-order-dialog__sl-input {
+	display: inline-block;
+}
+
+.custom-order-dialog__buttons-block {
+	text-align: center;
+	margin-top: 30px;
+}
+
+.custom-order-dialog__ok-button {
+	margin-right: 30px;
+}

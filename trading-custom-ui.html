@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+
+		<title>TradingView Trading Terminal Custom Dialogs demo</title>
+
+		<!-- Fix for iOS Safari zooming bug -->
+		<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="custom-dialogs/dist/bundle.css">
+
+		<script type="text/javascript" src="charting_library/charting_library.standalone.js"></script>
+		<script type="text/javascript" src="datafeeds/udf/dist/bundle.js"></script>
+		<script type="text/javascript" src="broker-sample/dist/bundle.js"></script>
+		<script type="text/javascript" src="custom-dialogs/dist/bundle.js"></script>
+
+		<script type="text/javascript">
+
+			function getParameterByName(name) {
+				name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+				var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+						results = regex.exec(location.search);
+				return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+			}
+
+			function createDeferredPromise() {
+				var resolveFn;
+				var rejectFn;
+
+				var promise = new Promise(function(resolve, reject) {
+					resolveFn = resolve;
+					rejectFn = reject;
+				});
+
+				return {
+					promise: promise,
+					reject: rejectFn,
+					resolve: resolveFn,
+				};
+			}
+
+			var orderResult = createDeferredPromise();
+			var positionResult = createDeferredPromise();
+			var cancelOrderResult = createDeferredPromise();
+			var closePositionResult = createDeferredPromise();
+
+			var customOrderDialog = null;
+			var customPositionDialog = null;
+			var customCancelOrderDialog = null;
+			var customClosePositionDialog = null;
+			var createCancelOrderButtonListener = null;
+			var createClosePositionButtonListener = null;
+
+			var onOrderResultCallback = function(result) {
+				orderResult.resolve(result);
+				if (customOrderDialog !== null) {
+					customOrderDialog.style.display = 'none';
+					customOrderDialog.removeAttribute('data-symbol');
+				}
+			};
+
+			var onPositionResultCallback = function(result) {
+				positionResult.resolve(result);
+				if (customPositionDialog !== null) {
+					customPositionDialog.style.display = 'none';
+					customPositionDialog.removeAttribute('data-symbol');
+				}
+			};
+
+			var onCancelOrderResultCallback = function(result) {
+				cancelOrderResult.resolve(result);
+				if (customCancelOrderDialog !== null) {
+					customCancelOrderDialog.style.display = 'none';
+				}
+			};
+
+			var onCloseOrderResultCallback = function(result) {
+				closePositionResult.resolve(result);
+				if (customClosePositionDialog !== null) {
+					customClosePositionDialog.style.display = 'none';
+				}
+			};
+
+			function initOnReady() {
+				var datafeedUrl = "https://demo-feed-data.tradingview.com";
+				var customDataUrl = getParameterByName('dataUrl');
+				if (customDataUrl !== "") {
+					datafeedUrl = customDataUrl.startsWith('https://') ? customDataUrl : `https://${customDataUrl}`;
+				}
+				// BEWARE: no trailing slash is expected in feed URL
+				var datafeed = new Datafeeds.UDFCompatibleDatafeed(datafeedUrl, undefined, {
+					maxResponseLength: 1000,
+					expectedOrder: 'latestFirst',
+				});
+
+				customCancelOrderDialog = CustomDialogs.createCancelOrderDialog(onCancelOrderResultCallback);
+				customClosePositionDialog = CustomDialogs.createClosePositionDialog(onCloseOrderResultCallback);
+
+				var widget = window.tvWidget = new TradingView.widget({
+					// debug: true, // uncomment this line to see Library errors and warnings in the console
+					fullscreen: true,
+					symbol: 'AAPL',
+					interval: '1D',
+					container: "tv_chart_container",
+					datafeed: datafeed,
+					library_path: "charting_library/",
+					locale: getParameterByName('lang') || "en",
+
+					disabled_features: [
+						"use_localstorage_for_settings",
+						"order_panel",
+					],
+					enabled_features: ["study_templates", 'dom_widget'],
+					charts_storage_url: 'https://saveload.tradingview.com',
+					charts_storage_api_version: "1.1",
+					client_id: 'trading_platform_demo',
+					user_id: 'public_user',
+					theme: getParameterByName('theme'),
+
+					widgetbar: {
+						details: true,
+						news: true,
+						watchlist: true,
+						datawindow: true,
+						watchlist_settings: {
+							default_symbols: ["MSFT", "IBM", "AAPL"]
+						}
+					},
+
+					rss_news_feed: {
+						"default": [ {
+							url: "https://demo-feed-data.tradingview.com/news?symbol={SYMBOL}",
+							name: "Yahoo Finance"
+						} ]
+					},
+
+					broker_factory: function(host) {
+						var broker = new Brokers.BrokerSample(host, datafeed);
+						customOrderDialog = CustomDialogs.createOrderDialog(broker, onOrderResultCallback);
+						customPositionDialog = CustomDialogs.createPositionDialog(broker, onPositionResultCallback);
+						createCancelOrderButtonListener = CustomDialogs.createCancelOrderButtonListenerFactory(broker);
+						createClosePositionButtonListener = CustomDialogs.createClosePositionButtonListenerFactory(broker);
+						return broker;
+					},
+					broker_config: {
+						configFlags: {
+							supportNativeReversePosition: true,
+							supportClosePosition: true,
+							supportPLUpdate: true,
+							supportLevel2Data: false,
+							showQuantityInsteadOfAmount: true,
+							supportPositions: true,
+							supportPositionBrackets: true,
+						},
+						durations: [{ name: 'DAY', value: 'DAY' }, { name: 'GTT', value: 'GTT' }],
+						customUI: {
+							showOrderDialog: function(order, focus) {
+								CustomDialogs.showOrderDialog(customOrderDialog, order);
+								// NOTE: This promise should be resolved with true/false only
+								return orderResult.promise;
+							},
+							showPositionDialog: function(position, brackets, focus) {
+								CustomDialogs.showPositionDialog(customPositionDialog, position, brackets);
+								// NOTE: This promise should be resolved with true/false only
+								return positionResult.promise;
+							},
+							showCancelOrderDialog: function(order) {
+								if (createCancelOrderButtonListener === null) {
+									return cancelOrderResult.promise;
+								}
+								var listener = createCancelOrderButtonListener(order, function() {
+									CustomDialogs.hideCancelOrderDialog(customCancelOrderDialog, listener);
+								});
+								CustomDialogs.showCancelOrderDialog(customCancelOrderDialog, listener, order);
+								// NOTE: This promise should be resolved with true/false only
+								return cancelOrderResult.promise;
+							},
+							showClosePositionDialog: function(position) {
+								if (createClosePositionButtonListener === null) {
+									return cancelOrderResult.promise;
+								}
+								var listener = createClosePositionButtonListener(position, function() {
+									CustomDialogs.hideClosePositionDialog(customClosePositionDialog, listener);
+								});
+								CustomDialogs.showClosePositionDialog(customClosePositionDialog, listener, position);
+								// NOTE: This promise should be resolved with true/false only
+								return closePositionResult.promise;
+							}
+						},
+					},
+				});
+			};
+
+			window.addEventListener('DOMContentLoaded', initOnReady, false);
+		</script>
+
+	</head>
+
+	<body style="margin:0px;">
+		<div id="tv_chart_container"></div>
+	</body>
+
+</html>

@@ -1,0 +1,70 @@
+.custom-position-dialog {
+	display: none;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	box-sizing: border-box;
+	margin: auto;
+	padding: 20px 15px;
+	border-radius: 4px;
+	width: 400px;
+	height: 300px;
+	text-align: left;
+	font-size: 18px;
+	background-color: #fff;
+	box-shadow: rgba(0, 0, 0, .275) 0px 1px 2px 1px;
+}
+
+.custom-position-dialog__header {
+	text-align: center;
+}
+
+.custom-position-dialog__qty-section {
+	margin-top: 30px;
+}
+
+.custom-position-dialog__qty-header {
+	display: inline-block;
+	margin-right: 33px;
+}
+
+.custom-position-dialog__qty-input {
+	display: inline-block;
+}
+
+.custom-position-dialog__sl-section {
+	margin-top: 30px;
+}
+
+.custom-position-dialog__sl-header {
+	display: inline-block;
+	margin-right: 27px;
+}
+
+.custom-position-dialog__sl-input {
+	display: inline-block;
+}
+
+.custom-position-dialog__tp-section {
+	margin-top: 30px;
+}
+
+.custom-position-dialog__tp-header {
+	display: inline-block;
+	margin-right: 17px;
+}
+
+.custom-position-dialog__tp-input {
+	display: inline-block;
+}
+
+.custom-position-dialog__buttons-block {
+	text-align: center;
+	margin-top: 30px;
+}
+
+.custom-position-dialog__ok-button {
+	margin-right: 30px;
+}
